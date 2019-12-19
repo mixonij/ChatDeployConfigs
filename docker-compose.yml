@@ -1,0 +1,62 @@
+version: '3.1'
+
+services:
+  db:
+    container_name: db_container
+    image: postgres:11
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: chatDB
+      POSTGRES_USER: chat
+      POSTGRES_PASSWORD: chat
+    volumes:
+      - ./pg_data1:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: pgadmin4@pgadmin.org
+      PGADMIN_DEFAULT_PASSWORD: pgadmin
+    volumes:
+      - pgadmin:/root/.pgadmin
+    ports:
+      - 5050:80
+    restart: unless-stopped
+
+
+
+  chat:
+    image: registry.gitlab.com/mixonij123/chat:latest
+    container_name: chat_container
+    restart: always
+    environment:
+      POSTGRES_HOST: db
+      DB_NAME: chatDB
+      DB_PORT: 5432
+      DB_USERNAME: chat
+      DB_PASSWORD: chat
+    ports:
+      - 8080:8080
+    volumes:
+      - ./logs:/logs
+      - ./https:/https
+    depends_on:
+      - db
+
+
+  portainer:
+    image:  portainer/portainer
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./portainer_data:/data
+    restart: unless-stopped
+
+volumes:
+  pgadmin:
+  postgres:
+  portainer_data:
